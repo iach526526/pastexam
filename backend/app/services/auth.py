@@ -8,7 +8,8 @@ async def oauth_callback(
     code: str, state: str = None, stored_state: str = None
 ):
     """
-    Verify CSRF token and handle OAuth callback for NYCU OAuth
+    Verify CSRF token and handle OAuth callback.
+    Now supports Google OAuth.
     """
     if (
         not state or not stored_state or
@@ -17,6 +18,7 @@ async def oauth_callback(
         raise HTTPException(
             status_code=400, detail="Invalid state parameter"
         )
+        
     try:
         async with httpx.AsyncClient() as client:
             token_resp = await client.post(
@@ -29,41 +31,37 @@ async def oauth_callback(
                     "redirect_uri": settings.OAUTH_REDIRECT_URI,
                 }
             )
-    except httpx.RequestError as e:
+            token_resp.raise_for_status() # 檢查 4xx/5xx 錯誤
+            
+    except (httpx.RequestError, httpx.HTTPStatusError) as e:
         raise HTTPException(
             status_code=502,
             detail=f"Failed to connect to OAuth server: {e}"
         )
 
-    if token_resp.status_code != 200:
-        raise HTTPException(
-            status_code=token_resp.status_code,
-            detail="OAuth token exchange failed"
-        )
     token_data = token_resp.json()
     access_token = token_data["access_token"]
 
     try:
         async with httpx.AsyncClient() as client:
             profile_resp = await client.get(
-                settings.OAUTH_USERINFO_URL,
+                settings.OAUTH_USERINFO_URL, # 讀取 .env (https://www.googleapis.com/oauth2/v3/userinfo)
                 headers={"Authorization": f"Bearer {access_token}"}
             )
-    except httpx.RequestError as e:
+            profile_resp.raise_for_status() # 檢查 4xx/5xx 錯誤
+            
+    except (httpx.RequestError, httpx.HTTPStatusError) as e:
         raise HTTPException(
             status_code=502, detail=f"Failed to fetch user info: {e}"
         )
 
-    if profile_resp.status_code != 200:
-        raise HTTPException(
-            status_code=profile_resp.status_code,
-            detail="Cannot fetch user info"
-        )
     userinfo = profile_resp.json()
+    
+    # --- 回傳 Google 格式的字典 ---
     return {
-        "provider": "nycu",
-        "sub": userinfo.get("username"),
+        "provider": "google",               
+        "sub": userinfo.get("sub"),         # <-- 從 "username" 改成 "sub" (Google 的 ID)
         "email": userinfo.get("email"),
-        "name": userinfo.get("username"),
-        "avatar_url": None
+        "name": userinfo.get("name"),       # <-- 從 "username" 改成 "name"
+        "avatar_url": userinfo.get("picture") # <-- Google 會提供頭像
     }

@@ -71,8 +71,10 @@ async def oauth_login(request: Request):
         "client_id": settings.OAUTH_CLIENT_ID,
         "response_type": "code",
         "state": csrf_token,
-        "scope": "profile",
-        "redirect_uri": settings.OAUTH_REDIRECT_URI
+        "scope": "openid email profile", 
+        "redirect_uri": settings.OAUTH_REDIRECT_URI,
+        # (可選) 增加 prompt 確保使用者每次都重新選擇帳號
+        # "prompt": "select_account"
     }
     auth_url = f"{settings.OAUTH_AUTHORIZE_URL}?{urlencode(auth_params)}"
     return RedirectResponse(url=auth_url)
