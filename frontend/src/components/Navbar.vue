@@ -24,7 +24,7 @@
             alt="favicon"
             class="mr-2 inline-block align-middle w-[20px] h-[20px] md:w-[24px] md:h-[24px]"
           />
-          交大資工考古題系統
+          興大應數考古題系統
         </span>
       </template>
       <template #end>
@@ -173,7 +173,7 @@
         <div class="flex justify-content-between mt-3">
           <Button
             icon="pi pi-graduation-cap"
-            label="NYCU OAuth"
+            label="NCHU OAuth"
             class="p-button-secondary p-button-outlined w-full"
             @click="handleOAuthLogin"
           />
@@ -515,7 +515,7 @@ export default {
     handleOAuthLogin() {
       this.loginVisible = false
       trackEvent(EVENTS.LOGIN, { type: 'direct-oauth' })
-      // trackEvent(EVENTS.LOGIN_OAUTH, { provider: 'NYCU' })
+      // trackEvent(EVENTS.LOGIN_OAUTH, { provider: 'NCHU' })
       authService.login()
     },
 
@@ -749,7 +749,7 @@ export default {
       body += '```\n'
       body += '</details>\n\n'
 
-      body += '---\n*此問題由交大資工考古題系統自動產生*'
+      body += '---\n*此問題由興大應數考古題系統自動產生*'
 
       return body
     },

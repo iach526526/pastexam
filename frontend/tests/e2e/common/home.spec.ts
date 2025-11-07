@@ -41,7 +41,7 @@ test.describe('Home page', () => {
       .poll(async () => page.evaluate(() => document.documentElement.classList.contains('dark')))
       .not.toBe(initialTheme)
 
-    await expect(page.getByRole('heading', { name: '交大資工考古題系統' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '興大應數考古題系統' })).toBeVisible()
 
     await page.evaluate(() => {
       const globalWindow = window as typeof window & {

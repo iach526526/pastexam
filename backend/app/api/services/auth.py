@@ -62,7 +62,7 @@ async def login(
 async def oauth_login(request: Request):
     """
     Initialize OAuth login flow
-    Supports NYCU OAuth login
+    Supports NCHU OAuth login
     """
     csrf_token = secrets.token_urlsafe(32)
     request.session['csrf_token'] = csrf_token

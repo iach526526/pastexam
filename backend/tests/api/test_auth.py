@@ -63,7 +63,7 @@ async def test_oauth_login_and_callback_creates_user(
         assert state_param == state
         assert stored_state == state
         return {
-            "provider": "nycu",
+            "provider": "NCHU",
             "sub": "oauth-subject",
             "email": "oauthuser@example.com",
             "name": "OAuth User",
@@ -90,7 +90,7 @@ async def test_oauth_login_and_callback_creates_user(
         )
         created_user = result.scalar_one_or_none()
         assert created_user is not None
-        assert created_user.oauth_provider == "nycu"
+        assert created_user.oauth_provider == "NCHU"
         assert created_user.oauth_sub == "oauth-subject"
         await session.execute(
             delete(User).where(User.email == "oauthuser@example.com")
@@ -160,7 +160,7 @@ async def test_oauth_callback_updates_existing_user(
 
     unique_email = f"{uuid.uuid4().hex}@example.com"
     info = {
-        "provider": "nycu",
+        "provider": "NCHU",
         "sub": "existing-sub",
         "email": unique_email,
         "name": "Existing User",
@@ -181,7 +181,7 @@ async def test_oauth_callback_updates_existing_user(
         user_id = user.id
 
     update_info = {
-        "provider": "nycu",
+        "provider": "NCHU",
         "sub": "existing-sub",
         "email": unique_email,
         "name": "Existing User",
@@ -291,7 +291,7 @@ async def test_auth_callback_direct_creates_user(monkeypatch, session_maker):
         "app.api.services.auth.oauth_callback",
         AsyncMock(
             return_value={
-                "provider": "nycu",
+                "provider": "NCHU",
                 "sub": "direct-sub",
                 "email": "direct@example.com",
                 "name": "Direct User",

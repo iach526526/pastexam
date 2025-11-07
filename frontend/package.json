@@ -57,8 +57,8 @@
   },
   "lint-staged": {
     "*.{js,jsx,vue}": [
-      "pnpm exec eslint --ext .js,.ts,.vue src tests",
-      "pnpm exec prettier --write ."
+      "npx pnpm exec eslint --ext .js,.ts,.vue src tests",
+      "npx pnpm exec prettier --write ."
     ]
   },
   "packageManager": "pnpm@9.0.0"
