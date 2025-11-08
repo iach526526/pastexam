@@ -3,9 +3,9 @@ courses:
     category: FRESHMAN
   - name: "微積分(二)"
     category: FRESHMAN
-  - name: "物理(一)"
+  - name: "普通物理(一)"
     category: FRESHMAN
-  - name: "物理(二)"
+  - name: "普通物理(二)"
     category: FRESHMAN
   - name: "線性代數（一）"
     category: FRESHMAN
@@ -13,27 +13,23 @@ courses:
     category: FRESHMAN
   - name: "程式設計"
     category: FRESHMAN
-  - name: 統計學
+  - name: "統計學 Z"
+    category: FRESHMAN
+  - name: "資料結構 G"
     category: FRESHMAN
 # 二年級
-  - name: "機率"
+  - name: "向量微積分 Z"
     category: SOPHOMORE
-  - name: "演算法概論"
 # 大三
-  - name: "作業系統概論"
+  - name: "作業系統 Z"
+    category: JUNIOR
+  - name: "應用統計與R語言 Z
     category: JUNIOR
 # 大四
-    category: SENIOR
-  - name: "計算機系統管理"
-    category: SENIOR
-  - name: "計算機網路管理"
-    category: SENIOR
-  - name: "作業系統總整與實作"
+  - name: "計算機結構 Z"
     category: SENIOR
 # 研究所
-  - name: "密碼工程"
-    category: GRADUATE
-  - name: "高等 UNIX 程式設計"
+  - name: "高等數值方法(一) "
     category: GRADUATE
 # 通識
   - name: "實用生活化學"
