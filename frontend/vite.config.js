@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => ({
     Components({ resolvers: [PrimeVueResolver()] }),
     mode === 'production' &&
       Sitemap({
-        hostname: 'https://pastexam.nctucsunion.me',
+        hostname: 'https://passexam.iach.cc',
         dynamicRoutes: ['/archive', '/admin', '/login/callback'],
         changefreq: 'weekly',
         priority: 0.8,

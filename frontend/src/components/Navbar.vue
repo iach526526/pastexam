@@ -627,7 +627,7 @@ export default {
 
       const systemInfo = this.getSystemInfo()
       const issueBody = this.formatIssueBody(description, contact, systemInfo, type)
-      const repoOwner = 'nctucsunion'
+      const repoOwner = 'iach526526'
       const repoName = 'pastexam'
       const githubUrl =
         `https://github.com/${repoOwner}/${repoName}/issues/new?` +
