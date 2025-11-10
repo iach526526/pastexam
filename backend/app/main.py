@@ -8,13 +8,13 @@ from app.db.init_db import init_db
 
 app = FastAPI(title="Past Exam API", docs_url=None, redoc_url=None)
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=[settings.FRONTEND_URL],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.FRONTEND_URL],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.add_middleware(
     SessionMiddleware,
