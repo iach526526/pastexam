@@ -24,7 +24,7 @@
             alt="favicon"
             class="mr-2 inline-block align-middle w-[20px] h-[20px] md:w-[24px] md:h-[24px]"
           />
-          興大應數考古題系統
+          中興應數考古題系統
         </span>
       </template>
       <template #end>
@@ -749,7 +749,7 @@ export default {
       body += '```\n'
       body += '</details>\n\n'
 
-      body += '---\n*此問題由興大應數考古題系統自動產生*'
+      body += '---\n*此問題由中興應數考古題系統自動產生*'
 
       return body
     },

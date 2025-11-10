@@ -12,7 +12,7 @@
   <img alt="Downloads" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpastexam.nctucsunion.me%2Fapi%2Fstatistics&query=%24.data.totalDownloads&label=downloads&color=darkcyan">
   <br>
   <br>
-  <strong>交大資工考古題系統</strong>
+  <strong>中興應數考古題系統</strong>
   <br>
   <br>
   <a href="https://pastexam.nctucsunion.me/">Visit Website</a>
