@@ -56,13 +56,18 @@ async def init_db():
             admin_user = User(
                 name=settings.DEFAULT_ADMIN_NAME,
                 email=settings.DEFAULT_ADMIN_EMAIL,
-                password_hash=get_password_hash(
-                    settings.DEFAULT_ADMIN_PASSWORD
-                ),
+                password_hash=get_password_hash(settings.DEFAULT_ADMIN_PASSWORD),
                 is_local=True,
                 is_admin=True
             )
             session.add(admin_user)
+            await session.commit()
+            await session.refresh(admin_user)
+        else:
+            # 如果已存在，更新資料
+            admin_user.name = settings.DEFAULT_ADMIN_NAME
+            admin_user.is_admin = True
+            admin_user.password_hash = get_password_hash(settings.DEFAULT_ADMIN_PASSWORD)
             await session.commit()
             await session.refresh(admin_user)
 
