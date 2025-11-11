@@ -101,9 +101,19 @@ async def auth_callback_endpoint(
             User.oauth_sub == info["sub"]
         )
     )
-    user = result.scalar_one_or_none()
+    email_result = await db.execute(select(User).where(User.email == info["email"]))
+    existing_user = email_result.scalar_one_or_none()
 
-    if user is None:
+    if existing_user:
+        # 更新 oauth_provider 和 oauth_sub 或其他欄位
+        existing_user.oauth_provider = info["provider"]
+        existing_user.oauth_sub = info["sub"]
+        existing_user.last_login = datetime.now(timezone.utc)
+        await db.commit()
+        await db.refresh(existing_user)
+        user = existing_user
+    else:
+        # 新增使用者
         user = User(
             oauth_provider=info["provider"],
             oauth_sub=info["sub"],
@@ -115,11 +125,7 @@ async def auth_callback_endpoint(
         db.add(user)
         await db.commit()
         await db.refresh(user)
-    else:
-        # Update last_login timestamp for existing users
-        user.last_login = datetime.now(timezone.utc)
-        await db.commit()
-        await db.refresh(user)
+    
 
     payload = {
         "uid": user.id,
