@@ -14,7 +14,7 @@
   <img alt="Downloads" src="https://img.shields.io/badge/dynamic/json?url=https://foram.iach.cc/statistics&query=%24.data.totalDownloads&label=downloads&color=darkcyan">
   <br>
   <br>
-  <strong>中興應數考古題系統</strong>
+  <strong>For All Math</strong>
   <br>
   <br>
   <a href="https://passexam.iach.cc">Visit Website</a>
