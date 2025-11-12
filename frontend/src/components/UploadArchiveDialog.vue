@@ -251,7 +251,7 @@
                       class="pi pi-cloud-upload border-2 border-round p-5 text-4xl text-500 mb-3"
                     ></i>
                     <p class="m-0 text-600">將 PDF 檔案拖放至此處以上傳</p>
-                    <p class="m-0 text-sm text-500 mt-2">僅接受 PDF 檔案，檔案大小最大 10MB</p>
+                    <p class="m-0 text-sm text-500 mt-2">僅接受 PDF 檔案，檔案大小最大 20MB</p>
                   </div>
                 </template>
               </FileUpload>
