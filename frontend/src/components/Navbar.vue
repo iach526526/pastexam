@@ -24,7 +24,7 @@
             alt="favicon"
             class="mr-2 inline-block align-middle w-[20px] h-[20px] md:w-[24px] md:h-[24px]"
           />
-          中興應數考古題系統
+          ForAll Math
         </span>
       </template>
       <template #end>
