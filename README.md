@@ -22,5 +22,7 @@
   <a href="https://github.com/iach526526/pastexam/issues">Report Bug</a>
   &nbsp; | &nbsp;
   <a href="https://github.com/iach526526/pastexam/pulls">Request Feature</a>
+  &nbsp; | &nbsp;
+  <a href="https://github.com/iach526526/pastexam/wiki">Wiki</a>
   <br>
 </p>
