@@ -213,7 +213,7 @@ async def test_upload_archive_rejects_large_file(
     )
 
     try:
-        big_content = b"x" * (10 * 1024 * 1024 + 1)
+        big_content = b"x" * (20 * 1024 * 1024 + 1)
         response = await client.post(
             "/archives/upload",
             files={

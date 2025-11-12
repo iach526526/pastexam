@@ -192,7 +192,7 @@
               <FileUpload
                 ref="fileUpload"
                 accept="application/pdf"
-                :maxFileSize="10 * 1024 * 1024"
+                :maxFileSize="20 * 1024 * 1024"
                 class="w-full"
                 @select="onFileSelect"
                 :multiple="false"
