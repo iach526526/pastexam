@@ -67,10 +67,8 @@ async def oauth_login(request: Request):
         "client_id": settings.OAUTH_CLIENT_ID,
         "response_type": "code",
         "state": csrf_token,
-        "scope": "openid email profile", 
+        "scope": "profile",
         "redirect_uri": settings.OAUTH_REDIRECT_URI,
-        # (可選) 增加 prompt 確保使用者每次都重新選擇帳號
-        # "prompt": "select_account"
     }
     auth_url = f"{settings.OAUTH_AUTHORIZE_URL}?{urlencode(auth_params)}"
     return RedirectResponse(url=auth_url)
@@ -93,25 +91,15 @@ async def auth_callback_endpoint(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Somthing went wrong! Please change other email address"
         )
-
+    now = datetime.now(timezone.utc)
     result = await db.execute(
         select(User).where(
             User.oauth_provider == info["provider"], User.oauth_sub == info["sub"]
         )
     )
-    email_result = await db.execute(select(User).where(User.email == info["email"]))
-    existing_user = email_result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
 
-    if existing_user:
-        # 更新 oauth_provider 和 oauth_sub 或其他欄位
-        existing_user.oauth_provider = info["provider"]
-        existing_user.oauth_sub = info["sub"]
-        existing_user.last_login = datetime.now(timezone.utc)
-        await db.commit()
-        await db.refresh(existing_user)
-        user = existing_user
-    else:
-        # 新增使用者
+    if user is None:
         user = User(
             oauth_provider=info["provider"],
             oauth_sub=info["sub"],
@@ -124,7 +112,12 @@ async def auth_callback_endpoint(
         db.add(user)
         await db.commit()
         await db.refresh(user)
-    
+    else:
+        if user.deleted_at is not None:
+            user.deleted_at = None
+        user.last_login = now
+        await db.commit()
+        await db.refresh(user)
 
     payload = {
         "uid": user.id,
