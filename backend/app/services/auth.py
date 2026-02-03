@@ -1,12 +1,12 @@
-from fastapi import HTTPException
-import httpx
 import hmac
+
+import httpx
+from fastapi import HTTPException
+
 from app.core.config import settings
 
 
-async def oauth_callback(
-    code: str, state: str = None, stored_state: str = None
-):
+async def oauth_callback(code: str, state: str = None, stored_state: str = None):
     """
     Verify CSRF token and handle OAuth callback.
     Now supports Google OAuth.
@@ -29,14 +29,13 @@ async def oauth_callback(
                     "client_id": settings.OAUTH_CLIENT_ID,
                     "client_secret": settings.OAUTH_CLIENT_SECRET,
                     "redirect_uri": settings.OAUTH_REDIRECT_URI,
-                }
+                },
             )
             token_resp.raise_for_status() # 檢查 4xx/5xx 錯誤
             
     except (httpx.RequestError, httpx.HTTPStatusError) as e:
         raise HTTPException(
-            status_code=502,
-            detail=f"Failed to connect to OAuth server: {e}"
+            status_code=502, detail=f"Failed to connect to OAuth server: {e}"
         )
 
     token_data = token_resp.json()

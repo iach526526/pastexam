@@ -117,7 +117,7 @@
 
       <div class="main-content flex-1 h-full overflow-auto">
         <div class="card h-full flex flex-col">
-          <div v-if="selectedSubject" class="p-3 border-bottom-1 surface-border">
+          <div v-if="selectedSubject" class="p-3 subject-header">
             <div class="flex align-items-center gap-2">
               <Tag severity="secondary" class="text-sm">
                 {{ getCategoryTag(getCategoryName(getCurrentCategory)) }}
@@ -187,37 +187,24 @@
                   <AccordionContent>
                     <DataTable :value="group.list">
                       <Column header="教授" field="professor" style="width: 10%"></Column>
-                      <Column header="類型" style="width: 10%" class="md:text-sm text-xs">
+                      <Column header="類型" style="width: 10%">
                         <template #body="{ data }">
-                          <Tag
-                            :severity="archiveTypeConfig[data.type]?.severity || 'secondary'"
-                            class="md:text-sm text-xs"
-                          >
+                          <Tag :severity="archiveTypeConfig[data.type]?.severity || 'secondary'">
                             {{ archiveTypeConfig[data.type]?.name || data.type }}
                           </Tag>
                         </template>
                       </Column>
-                      <Column
-                        header="考試名稱"
-                        field="name"
-                        style="width: 15%"
-                        class="md:text-sm text-xs"
-                      ></Column>
+                      <Column header="考試名稱" field="name" style="width: 15%"></Column>
                       <Column header="解答" style="width: 10%">
                         <template #body="{ data }">
-                          <Tag
-                            :severity="data.hasAnswers ? 'info' : 'secondary'"
-                            class="md:text-sm text-xs"
-                          >
+                          <Tag :severity="data.hasAnswers ? 'info' : 'secondary'">
                             {{ data.hasAnswers ? '附解答' : '僅題目' }}
                           </Tag>
                         </template>
                       </Column>
                       <Column header="下載次數" style="width: 10%">
                         <template #body="{ data }">
-                          <span class="md:text-sm text-xs">
-                            {{ formatDownloadCount(data.downloadCount) }}
-                          </span>
+                          <span>{{ formatDownloadCount(data.downloadCount) }}</span>
                         </template>
                       </Column>
                       <Column header="操作" style="width: 35%">
@@ -269,7 +256,7 @@
             >
               <i class="pi pi-book text-6xl" style="color: var(--text-secondary)"></i>
               <div class="text-xl font-medium mt-4" style="color: var(--text-secondary)">
-                請從左側選單選擇科目
+                請從左側選單選擇課程
               </div>
               <div class="text-sm mt-2" style="color: var(--text-secondary)">
                 選擇課程後即可瀏覽相關考古題
@@ -280,8 +267,14 @@
           <PdfPreviewModal
             :visible="showPreview"
             @update:visible="showPreview = $event"
+            :courseId="selectedCourse"
+            :archiveId="selectedArchive?.id"
             :previewUrl="selectedArchive?.previewUrl"
             :title="selectedArchive?.name || ''"
+            :academicYear="selectedArchive?.year"
+            :archiveType="selectedArchive?.type || ''"
+            :courseName="selectedSubject || ''"
+            :professorName="selectedArchive?.professor || ''"
             :loading="previewLoading"
             :error="previewError"
             @hide="closePreview"
@@ -307,12 +300,12 @@
           >
             <div class="flex flex-column">
               <div class="flex flex-column gap-2">
-                <label>考古題名稱</label>
-                <InputText v-model="editForm.name" placeholder="輸入考古題名稱" class="w-full" />
+                <label>考試名稱</label>
+                <InputText v-model="editForm.name" placeholder="輸入考試名稱" class="w-full" />
               </div>
 
               <div class="flex flex-column gap-2 mt-3">
-                <label>教授</label>
+                <label>授課教授</label>
                 <AutoComplete
                   :modelValue="editForm.professor"
                   @update:modelValue="(val) => (editForm.professor = val)"
@@ -322,7 +315,7 @@
                   @focus="() => searchEditProfessor({ query: '' })"
                   @click="() => searchEditProfessor({ query: '' })"
                   optionLabel="name"
-                  placeholder="選擇教授"
+                  placeholder="選擇授課教授"
                   class="w-full"
                   dropdown
                   completeOnFocus
@@ -336,14 +329,14 @@
               </div>
 
               <div class="flex flex-column gap-2 mt-3">
-                <label>年份</label>
+                <label>考試年份</label>
                 <DatePicker
                   v-model="editForm.academicYear"
                   @update:modelValue="(val) => (editForm.academicYear = val)"
                   view="year"
                   dateFormat="yy"
                   :showIcon="true"
-                  placeholder="選擇年份"
+                  placeholder="選擇考試年份"
                   class="w-full"
                   :maxDate="new Date()"
                   :minDate="new Date(2000, 0, 1)"
@@ -381,19 +374,19 @@
 
               <div v-if="editForm.shouldTransfer" class="flex flex-column pl-4 mt-3">
                 <div class="flex flex-column gap-2">
-                  <label>目標課程分類</label>
+                  <label>目標課程類別</label>
                   <Select
                     v-model="editForm.targetCategory"
                     :options="categoryOptions"
                     optionLabel="name"
                     optionValue="value"
-                    placeholder="選擇課程分類"
+                    placeholder="選擇課程類別"
                     class="w-full"
                   />
                 </div>
 
                 <div class="flex flex-column gap-2 mt-3">
-                  <label>目標課程</label>
+                  <label>目標課程名稱</label>
                   <AutoComplete
                     v-model="editForm.targetCourse"
                     :suggestions="availableCoursesForTransfer"
@@ -452,6 +445,13 @@ import { getCurrentUser, isAuthenticated } from '../utils/auth'
 import { useTheme } from '../utils/useTheme'
 import { trackEvent, EVENTS } from '../utils/analytics'
 import { isUnauthorizedError } from '../utils/http'
+import {
+  STORAGE_KEYS,
+  getLocalJson,
+  setLocalJson,
+  removeLocalItem,
+  setSessionJson,
+} from '../utils/storage'
 
 const toast = inject('toast')
 const confirm = inject('confirm')
@@ -605,6 +605,61 @@ watch(searchQuery, (newValue) => {
     }, 1000) // 1 second debounce
   }
 })
+
+const ISSUE_CONTEXT_STORAGE_KEY = STORAGE_KEYS.session.ISSUE_CONTEXT
+
+function persistIssueContext() {
+  try {
+    if (typeof window === 'undefined') return
+
+    const selectedSubjectStored = getLocalJson(STORAGE_KEYS.local.SELECTED_SUBJECT)
+
+    const payload = {
+      page: 'archive',
+      timestamp: new Date().toISOString(),
+      course: {
+        id: selectedCourse.value ?? selectedSubjectStored?.id ?? null,
+        name: selectedSubject.value ?? selectedSubjectStored?.label ?? null,
+      },
+      filters: {
+        year: filters.value?.year || null,
+        professor: filters.value?.professor || null,
+        type: filters.value?.type || null,
+        hasAnswers: Boolean(filters.value?.hasAnswers),
+        searchQuery: searchQuery.value || null,
+      },
+      preview: {
+        open: Boolean(showPreview.value),
+        archiveId: selectedArchive.value?.id ?? null,
+        name: selectedArchive.value?.name ?? null,
+        year: selectedArchive.value?.year ?? null,
+        professor: selectedArchive.value?.professor ?? null,
+        type: selectedArchive.value?.type ?? null,
+        hasAnswers: selectedArchive.value?.hasAnswers ?? null,
+      },
+    }
+
+    setSessionJson(ISSUE_CONTEXT_STORAGE_KEY, payload)
+  } catch {
+    // ignore
+  }
+}
+
+watch(
+  () => [
+    selectedCourse.value,
+    selectedSubject.value,
+    showPreview.value,
+    selectedArchive.value?.id,
+    filters.value?.year,
+    filters.value?.professor,
+    filters.value?.type,
+    filters.value?.hasAnswers,
+    searchQuery.value,
+  ],
+  () => persistIssueContext(),
+  { immediate: true }
+)
 
 const menuItems = computed(() => {
   if (!coursesList.value) return []
@@ -765,7 +820,7 @@ function filterBySubject(course) {
     archives.value = []
     expandedMenuItems.value = {}
     shouldResetPanels.value = true
-    localStorage.removeItem('selectedSubject')
+    removeLocalItem(STORAGE_KEYS.local.SELECTED_SUBJECT)
     return
   }
 
@@ -788,13 +843,7 @@ function filterBySubject(course) {
     // console.log("Expanding category:", categoryKey, expandedMenuItems.value);
   }
 
-  localStorage.setItem(
-    'selectedSubject',
-    JSON.stringify({
-      label: course.label,
-      id: course.id,
-    })
-  )
+  setLocalJson(STORAGE_KEYS.local.SELECTED_SUBJECT, { label: course.label, id: course.id })
 
   fetchArchives()
 }
@@ -918,6 +967,9 @@ async function downloadArchive(archive) {
     const { data } = await archiveService.getArchiveDownloadUrl(selectedCourse.value, archive.id)
 
     const response = await fetch(data.url)
+    if (!response.ok) {
+      throw new Error(`Download failed with status ${response.status}`)
+    }
     const blob = await response.blob()
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -929,8 +981,10 @@ async function downloadArchive(archive) {
 
     document.body.appendChild(link)
     link.click()
-    window.URL.revokeObjectURL(url)
-    link.remove()
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url)
+      link.remove()
+    }, 100)
 
     trackEvent(EVENTS.DOWNLOAD_ARCHIVE, {
       archiveName: archive.name,
@@ -1277,10 +1331,9 @@ onMounted(async () => {
   checkAuthentication()
   await fetchCourses()
 
-  const savedSubject = localStorage.getItem('selectedSubject')
-  if (savedSubject) {
+  const subjectData = getLocalJson(STORAGE_KEYS.local.SELECTED_SUBJECT)
+  if (subjectData) {
     try {
-      const subjectData = JSON.parse(savedSubject)
       // Verify the course still exists in the current course list
       const courseExists = Object.values(coursesList.value).some((category) =>
         category.some((course) => course.id === subjectData.id && course.name === subjectData.label)
@@ -1297,11 +1350,11 @@ onMounted(async () => {
 
         await fetchArchives()
       } else {
-        localStorage.removeItem('selectedSubject')
+        removeLocalItem(STORAGE_KEYS.local.SELECTED_SUBJECT)
       }
     } catch (error) {
       console.error('Error parsing saved subject:', error)
-      localStorage.removeItem('selectedSubject')
+      removeLocalItem(STORAGE_KEYS.local.SELECTED_SUBJECT)
     }
   }
 })
@@ -1347,6 +1400,9 @@ async function handlePreviewDownload(onComplete) {
     )
 
     const response = await fetch(data.url)
+    if (!response.ok) {
+      throw new Error(`Download failed with status ${response.status}`)
+    }
     const blob = await response.blob()
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -1358,8 +1414,10 @@ async function handlePreviewDownload(onComplete) {
 
     document.body.appendChild(link)
     link.click()
-    window.URL.revokeObjectURL(url)
-    link.remove()
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url)
+      link.remove()
+    }, 100)
 
     trackEvent(EVENTS.DOWNLOAD_ARCHIVE, {
       archiveName: selectedArchive.value.name,
@@ -1519,13 +1577,6 @@ const mobileMenuItems = computed(() => {
   background-color: var(--bg-primary);
 }
 
-.surface-border {
-  position: relative;
-  z-index: 1;
-  background-color: var(--bg-primary);
-  border-color: var(--border-color);
-}
-
 :deep(.p-sidebar) {
   padding: 0;
   background-color: var(--bg-primary);
@@ -1542,6 +1593,15 @@ const mobileMenuItems = computed(() => {
 :deep(.p-sidebar-content) {
   padding: 1rem;
   background-color: var(--bg-primary);
+}
+
+:deep(.p-accordioncontent),
+:deep(.p-accordioncontent-wrapper),
+:deep(.p-accordioncontent-content) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 :deep(.p-input-icon-left) {
@@ -1564,40 +1624,21 @@ const mobileMenuItems = computed(() => {
   box-shadow: 0 0 0 1px var(--primary-color);
 }
 
-:deep(.p-accordionheader),
-:deep(.p-panelmenu-header-link),
-:deep(.p-panelmenu-content),
-:deep(.p-button),
-:deep(.p-button-outlined),
-:deep(.p-inputtext),
-:deep(.p-dropdown),
-:deep(.p-select),
-:deep(.p-checkbox),
-:deep(.p-checkbox-box),
-:deep(.p-checkbox-icon),
-:deep(.p-tag),
-:deep(.p-toolbar),
-:deep(.p-datatable),
-:deep(.p-datatable-thead > tr > th),
-:deep(.p-datatable-tbody > *),
-:deep(.p-dialog),
-:deep(.p-dialog-header),
-:deep(.p-dialog-content),
-:deep(.p-dialog-footer) {
-  transition: none !important;
-}
-
 .sidebar {
   width: 300px;
+  min-width: 0;
   background: var(--bg-primary);
-  border-right: 1px solid var(--border-color);
+  border: 1px solid var(--border-color);
   transition: width 0.2s ease-in-out;
   overflow: hidden;
   position: relative;
   z-index: 1;
-  height: 100%;
+  height: calc(100% - 0.25rem);
+  margin-left: 0.25rem;
+  margin-bottom: 0.25rem;
   display: flex;
   flex-direction: column;
+  box-shadow: none;
 }
 
 .upload-section {
@@ -1621,6 +1662,10 @@ const mobileMenuItems = computed(() => {
 
 .sidebar.collapsed {
   width: 0;
+  min-width: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  height: 100%;
   border-right: none;
 }
 
@@ -1636,6 +1681,13 @@ const mobileMenuItems = computed(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.subject-header {
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  position: relative;
+  z-index: 1;
 }
 
 .ellipsis {
@@ -1749,8 +1801,15 @@ const mobileMenuItems = computed(() => {
   }
 
   /* Table responsive design for mobile */
-  :deep(.p-datatable) {
+  :deep(.p-accordioncontent-content .p-datatable) {
     font-size: 0.75rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  :deep(.p-accordioncontent-content .p-datatable-table-container) {
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
   }
 
@@ -1813,7 +1872,14 @@ const mobileMenuItems = computed(() => {
 
 /* Desktop table overflow handling */
 @media (min-width: 769px) {
-  :deep(.p-datatable) {
+  :deep(.p-accordioncontent-content .p-datatable) {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  :deep(.p-accordioncontent-content .p-datatable-table-container) {
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
   }
 

@@ -1,4 +1,4 @@
-<p align="center">
+<div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/iach526526/pastexam/refs/heads/main/frontend/public/favicon-dark/android-chrome-512x512.png">
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/iach526526/pastexam/refs/heads/main/frontend/public/favicon-bright/android-chrome-512x512.png">

@@ -80,3 +80,9 @@ body {
     background-position: 300% 300%;
   }
 }
+
+/* Disable PrimeVue component transitions (prevents theme-switch fade effects) */
+.p-component,
+.p-component * {
+  transition: none !important;
+}

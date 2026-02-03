@@ -546,6 +546,7 @@ import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { getCurrentUser } from '../utils/auth'
 import { isUnauthorizedError } from '../utils/http'
+import { formatRelativeTime } from '../utils/time'
 import {
   getCourses,
   createCourse,
@@ -558,6 +559,7 @@ import {
   notificationService,
 } from '../api'
 import { trackEvent, EVENTS } from '../utils/analytics'
+import { STORAGE_KEYS, getLocalItem, setLocalItem } from '../utils/storage'
 
 const confirm = useConfirm()
 const toast = useToast()
@@ -638,11 +640,11 @@ const notificationFormErrors = ref({})
 
 const currentUserId = computed(() => getCurrentUser()?.id)
 
-const TAB_STORAGE_KEY = 'adminCurrentTab'
+const TAB_STORAGE_KEY = STORAGE_KEYS.local.ADMIN_CURRENT_TAB
 
 const getInitialTab = () => {
   try {
-    const savedTab = localStorage.getItem(TAB_STORAGE_KEY)
+    const savedTab = getLocalItem(TAB_STORAGE_KEY)
     if (savedTab && ['0', '1', '2'].includes(savedTab)) {
       return savedTab
     }
@@ -739,18 +741,7 @@ const isNotificationEffective = (notification) => {
 }
 
 const formatNotificationDate = (value) => {
-  if (!value) return '—'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-  return date.toLocaleString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return formatRelativeTime(value)
 }
 
 const resetNotificationForm = () => {
@@ -1338,42 +1329,13 @@ const deleteNotificationAction = async (notification) => {
 
 const formatDateTime = (dateString) => {
   if (!dateString) return '從未登入'
-
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffInMs = now - date
-  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
-  const diffInDays = Math.floor(diffInHours / 24)
-
-  if (diffInDays === 0) {
-    if (diffInHours === 0) {
-      const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
-      if (diffInMinutes < 1) {
-        return '剛剛'
-      } else if (diffInMinutes < 60) {
-        return `${diffInMinutes} 分鐘前`
-      }
-    }
-    return `${diffInHours} 小時前`
-  } else if (diffInDays === 1) {
-    return '昨天'
-  } else if (diffInDays < 7) {
-    return `${diffInDays} 天前`
-  } else {
-    return date.toLocaleDateString('zh-TW', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
+  return formatRelativeTime(dateString)
 }
 
 // Persist the current tab in localStorage
 const saveTabToStorage = (tabValue) => {
   try {
-    localStorage.setItem(TAB_STORAGE_KEY, tabValue)
+    setLocalItem(TAB_STORAGE_KEY, tabValue)
   } catch (e) {
     console.error('Failed to save tab to storage:', e)
   }
@@ -1469,29 +1431,6 @@ watch(
 
 :deep(.p-dialog-content) {
   background: var(--bg-primary);
-}
-
-:deep(.p-accordionheader),
-:deep(.p-panelmenu-header-link),
-:deep(.p-panelmenu-content),
-:deep(.p-button),
-:deep(.p-button-outlined),
-:deep(.p-inputtext),
-:deep(.p-dropdown),
-:deep(.p-select),
-:deep(.p-checkbox),
-:deep(.p-checkbox-box),
-:deep(.p-checkbox-icon),
-:deep(.p-tag),
-:deep(.p-toolbar),
-:deep(.p-datatable),
-:deep(.p-datatable-thead > tr > th),
-:deep(.p-datatable-tbody > *),
-:deep(.p-dialog),
-:deep(.p-dialog-header),
-:deep(.p-dialog-content),
-:deep(.p-dialog-footer) {
-  transition: none !important;
 }
 
 .search-icon {
