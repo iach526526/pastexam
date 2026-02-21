@@ -69,7 +69,7 @@ async def make_user(session_maker):
         password = overrides.pop("password", "StrongPass123!")
         base = {
             "name": f"user-{uuid.uuid4().hex[:8]}",
-            "email": f"user-{uuid.uuid4().hex[:8]}@example.com",
+            "email": f"user-{uuid.uuid4().hex[:8]}@smail.nchu.edu.tw",
             "password_hash": get_password_hash(password),
             "is_local": True,
             "is_admin": False,

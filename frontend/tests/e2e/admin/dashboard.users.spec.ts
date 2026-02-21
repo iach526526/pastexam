@@ -35,7 +35,7 @@ test.describe('Admin Dashboard › Users', () => {
     await expect(createDialog).toBeVisible()
 
     await createDialog.getByPlaceholder('輸入使用者名稱').fill('新用戶')
-    await createDialog.getByPlaceholder('輸入電子郵件').fill('newuser@example.com')
+    await createDialog.getByPlaceholder('輸入電子郵件').fill('newuser@smail.nchu.edu.tw')
     await createDialog.getByPlaceholder('輸入密碼').fill('Passw0rd!')
     await clickWhenVisible(createDialog.locator('.p-checkbox').first())
 
@@ -47,7 +47,7 @@ test.describe('Admin Dashboard › Users', () => {
 
     expect(createPayloads.at(-1)).toMatchObject({
       name: '新用戶',
-      email: 'newuser@example.com',
+      email: 'newuser@smail.nchu.edu.tw',
       is_admin: true,
     })
     await expect(page.getByRole('row', { name: /新用戶/ })).toBeVisible()
@@ -70,7 +70,7 @@ test.describe('Admin Dashboard › Users', () => {
     expect(updatePayloads.at(-1)).toMatchObject({
       payload: {
         name: '一般使用者 (更新)',
-        email: 'user@example.com',
+        email: 'user@smail.nchu.edu.tw',
         is_admin: true,
       },
     })

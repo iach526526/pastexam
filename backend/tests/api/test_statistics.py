@@ -65,7 +65,7 @@ async def test_get_system_statistics_direct_success(session_maker):
 
         online_user = User(
             name=f"online-user-{unique}",
-            email=f"online-{unique}@example.com",
+            email=f"online-{unique}@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
             last_login=now,
@@ -73,7 +73,7 @@ async def test_get_system_statistics_direct_success(session_maker):
         )
         offline_user = User(
             name=f"offline-user-{unique}",
-            email=f"offline-{unique}@example.com",
+            email=f"offline-{unique}@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
             last_login=earlier,

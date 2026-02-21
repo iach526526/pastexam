@@ -135,7 +135,7 @@ describe('utils/auth', () => {
   it('decodes valid tokens and reports authentication state', async () => {
     const payload = {
       uid: 42,
-      email: 'user@example.com',
+      email: 'user@smail.nchu.edu.tw',
       name: 'User',
       is_admin: true,
       avatar_url: 'https://avatar',
@@ -151,7 +151,7 @@ describe('utils/auth', () => {
     expect(decodeToken(token)).toEqual(payload)
     expect(getCurrentUser()).toEqual({
       id: 42,
-      email: 'user@example.com',
+      email: 'user@smail.nchu.edu.tw',
       name: 'User',
       is_admin: true,
       avatar: 'https://avatar',
@@ -166,7 +166,7 @@ describe('utils/auth', () => {
 
     const pastPayload = {
       uid: 1,
-      email: 'old@example.com',
+      email: 'old@smail.nchu.edu.tw',
       name: 'Past',
       is_admin: false,
       exp: Math.floor(Date.now() / 1000) - 120,

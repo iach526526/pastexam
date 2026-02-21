@@ -494,12 +494,12 @@ describe('Navbar methods', () => {
     const bodyWithContact = Navbar.methods.formatIssueBody.call(
       ctx,
       '描述內容',
-      'contact@example.com',
+      'contact@smail.nchu.edu.tw',
       systemInfo,
       'bug'
     )
     expect(ctx.getBrowserInfo).toHaveBeenCalledWith('chrome ua')
-    expect(bodyWithContact).toContain('contact@example.com')
+    expect(bodyWithContact).toContain('contact@smail.nchu.edu.tw')
     expect(bodyWithContact).toContain('## 頁面資訊')
     expect(bodyWithContact).toContain('資料結構')
     expect(bodyWithContact).toContain('year=2024')
@@ -577,7 +577,7 @@ describe('Navbar methods', () => {
         type: 'bug',
         title: '系統問題',
         description: '詳細描述',
-        contact: 'contact@example.com',
+        contact: 'contact@smail.nchu.edu.tw',
       },
       toast: { add: toastAddMock },
       closeIssueReportDialog: vi.fn(),

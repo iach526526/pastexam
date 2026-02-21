@@ -59,7 +59,7 @@ export const defaultUsers: User[] = [
   {
     id: 1,
     name: 'Admin',
-    email: 'admin@example.com',
+    email: 'admin@smail.nchu.edu.tw',
     is_admin: true,
     is_local: false,
     last_login: '2025-10-30T10:00:00Z',
@@ -67,7 +67,7 @@ export const defaultUsers: User[] = [
   {
     id: 2,
     name: '一般使用者',
-    email: 'user@example.com',
+    email: 'user@smail.nchu.edu.tw',
     is_admin: false,
     is_local: true,
     last_login: '2025-10-29T12:00:00Z',
