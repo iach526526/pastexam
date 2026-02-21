@@ -60,6 +60,14 @@ describe('utils/svgBg', () => {
   })
 })
 
+describe('utils/time', () => {
+  it('formats future dates as 剛剛', async () => {
+    const { formatRelativeTime } = await import('@/utils/time.js')
+    const future = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+    expect(formatRelativeTime(future)).toBe('剛剛')
+  })
+})
+
 describe('utils/analytics', () => {
   let analyticsModule
   let consoleErrorSpy
@@ -127,7 +135,7 @@ describe('utils/auth', () => {
   it('decodes valid tokens and reports authentication state', async () => {
     const payload = {
       uid: 42,
-      email: 'user@example.com',
+      email: 'user@smail.nchu.edu.tw',
       name: 'User',
       is_admin: true,
       avatar_url: 'https://avatar',
@@ -136,14 +144,14 @@ describe('utils/auth', () => {
     }
     const token = createToken(payload)
 
-    sessionStorage.setItem('authToken', token)
+    sessionStorage.setItem('auth-token', token)
 
     const { decodeToken, getCurrentUser, isAuthenticated } = await importModule()
 
     expect(decodeToken(token)).toEqual(payload)
     expect(getCurrentUser()).toEqual({
       id: 42,
-      email: 'user@example.com',
+      email: 'user@smail.nchu.edu.tw',
       name: 'User',
       is_admin: true,
       avatar: 'https://avatar',
@@ -154,11 +162,11 @@ describe('utils/auth', () => {
 
   it('handles invalid tokens gracefully', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    sessionStorage.setItem('authToken', 'invalid-token')
+    sessionStorage.setItem('auth-token', 'invalid-token')
 
     const pastPayload = {
       uid: 1,
-      email: 'old@example.com',
+      email: 'old@smail.nchu.edu.tw',
       name: 'Past',
       is_admin: false,
       exp: Math.floor(Date.now() / 1000) - 120,
@@ -171,7 +179,7 @@ describe('utils/auth', () => {
     expect(getCurrentUser()).toBeNull()
     expect(consoleErrorSpy).toHaveBeenCalled()
 
-    sessionStorage.setItem('authToken', expiredToken)
+    sessionStorage.setItem('auth-token', expiredToken)
     expect(isAuthenticated()).toBe(false)
 
     consoleErrorSpy.mockRestore()

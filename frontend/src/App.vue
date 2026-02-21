@@ -11,7 +11,7 @@
 
 <script>
 import Navbar from './components/Navbar.vue'
-import { ref, provide } from 'vue'
+import { provide, ref } from 'vue'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useToast } from 'primevue/usetoast'

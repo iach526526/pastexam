@@ -5,6 +5,13 @@ import ArchiveView from '@/views/Archive.vue'
 
 const trackEventMock = vi.hoisted(() => vi.fn())
 const isUnauthorizedErrorMock = vi.hoisted(() => vi.fn())
+const getCurrentUserMock = vi.hoisted(() =>
+  vi.fn(() => ({
+    id: 10,
+    is_admin: true,
+  }))
+)
+const isAuthenticatedMock = vi.hoisted(() => vi.fn(() => true))
 
 const listCoursesMock = vi.hoisted(() => vi.fn())
 const getCourseArchivesMock = vi.hoisted(() => vi.fn())
@@ -82,8 +89,8 @@ vi.mock('@/api', () => ({
 vi.mock('@/components/PdfPreviewModal.vue', () => ({
   default: {
     template: '<div><slot /></div>',
-    props: ['visible', 'archive', 'loading', 'error'],
-    emits: ['update:visible', 'download'],
+    props: ['visible', 'previewUrl', 'courseId', 'archiveId', 'loading', 'error'],
+    emits: ['update:visible', 'download', 'hide', 'error'],
   },
 }))
 
@@ -96,8 +103,8 @@ vi.mock('@/components/UploadArchiveDialog.vue', () => ({
 }))
 
 vi.mock('@/utils/auth', () => ({
-  getCurrentUser: vi.fn(() => ({ id: 10, is_admin: true })),
-  isAuthenticated: vi.fn(() => true),
+  getCurrentUser: getCurrentUserMock,
+  isAuthenticated: isAuthenticatedMock,
 }))
 
 vi.mock('@/utils/useTheme', () => ({
@@ -153,6 +160,8 @@ describe('ArchiveView', () => {
   beforeEach(() => {
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.useFakeTimers()
+    localStorage.clear()
+    sessionStorage.clear()
     trackEventMock.mockReset()
     isUnauthorizedErrorMock.mockReturnValue(false)
     listCoursesMock.mockResolvedValue({ data: sampleCourses })
@@ -216,6 +225,11 @@ describe('ArchiveView', () => {
     vi.runAllTimers()
     await flushPromises()
 
+    const initialIssueContextRaw = sessionStorage.getItem('pastexam-issue-context')
+    expect(initialIssueContextRaw).toBeTruthy()
+    const initialIssueContext = JSON.parse(initialIssueContextRaw)
+    expect(initialIssueContext.page).toBe('archive')
+
     const vm = wrapper.vm
 
     vm.filterBySubject(null)
@@ -230,6 +244,9 @@ describe('ArchiveView', () => {
     expect(vm.selectedSubject).toBe('Calculus I')
     expect(vm.groupedArchives.length).toBeGreaterThan(0)
 
+    const issueContextAfterSelect = JSON.parse(sessionStorage.getItem('pastexam-issue-context'))
+    expect(issueContextAfterSelect.course).toEqual({ id: 'c1', name: 'Calculus I' })
+
     vm.filters.year = '2023'
     vm.filters.professor = 'Prof. Chen'
     vm.filters.type = 'midterm'
@@ -240,6 +257,17 @@ describe('ArchiveView', () => {
     vi.runAllTimers()
     await flushPromises()
 
+    const issueContextAfterFilters = JSON.parse(sessionStorage.getItem('pastexam-issue-context'))
+    expect(issueContextAfterFilters.filters).toEqual(
+      expect.objectContaining({
+        year: '2023',
+        professor: 'Prof. Chen',
+        type: 'midterm',
+        hasAnswers: true,
+        searchQuery: 'calc',
+      })
+    )
+
     const archiveItem = vm.groupedArchives[0].list[0]
     await vm.downloadArchive(archiveItem)
     await flushPromises()
@@ -248,8 +276,17 @@ describe('ArchiveView', () => {
     expect(toastAddMock).toHaveBeenCalled()
 
     await vm.previewArchive(archiveItem)
+    await flushPromises()
     expect(vm.showPreview).toBe(true)
     expect(vm.selectedArchive.previewUrl).toContain('preview')
+
+    const issueContextAfterPreview = JSON.parse(sessionStorage.getItem('pastexam-issue-context'))
+    expect(issueContextAfterPreview.preview).toEqual(
+      expect.objectContaining({
+        open: true,
+        archiveId: archiveItem.id,
+      })
+    )
 
     vm.handlePreviewError()
     expect(vm.previewError).toBe(true)
@@ -260,6 +297,11 @@ describe('ArchiveView', () => {
 
     vm.closePreview()
     expect(vm.showPreview).toBe(false)
+    await nextTick()
+    const issueContextAfterClosePreview = JSON.parse(
+      sessionStorage.getItem('pastexam-issue-context')
+    )
+    expect(issueContextAfterClosePreview.preview?.open).toBe(false)
 
     vm.confirmDelete(archiveItem)
     await flushPromises()
@@ -448,6 +490,57 @@ describe('ArchiveView', () => {
 
     const mobileMenu = vm.mobileMenuItems
     expect(Array.isArray(mobileMenu)).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('covers remaining utility branches', async () => {
+    const sidebarInjected = ref(true)
+
+    const wrapper = mount(ArchiveView, {
+      global: {
+        provide: {
+          toast: { add: toastAddMock },
+          confirm: { require: confirmRequireMock },
+          sidebarVisible: sidebarInjected,
+        },
+        stubs: componentStubs,
+      },
+    })
+
+    await flushPromises()
+
+    // getCurrentCategory fallback when no course selected
+    wrapper.vm.selectedCourse = null
+    expect(wrapper.vm.getCurrentCategory).toBe('')
+
+    // Unauthorized preview download branch
+    wrapper.vm.selectedCourse = 'c1'
+    wrapper.vm.selectedSubject = 'Calculus I'
+    wrapper.vm.selectedArchive = { id: 'a1', year: '2023', professor: 'Prof', name: 'Midterm' }
+    getArchiveDownloadUrlMock.mockRejectedValueOnce(new Error('unauthorized'))
+    isUnauthorizedErrorMock.mockReturnValueOnce(true)
+    const onComplete = vi.fn()
+    await wrapper.vm.handlePreviewDownload(onComplete)
+    expect(onComplete).toHaveBeenCalled()
+    expect(toastAddMock).not.toHaveBeenCalled()
+
+    // checkAuthentication when user missing
+    isAuthenticatedMock.mockReturnValueOnce(true)
+    getCurrentUserMock.mockReturnValueOnce(null)
+    wrapper.vm.checkAuthentication()
+    expect(wrapper.vm.isAuthenticatedRef).toBe(false)
+    expect(wrapper.vm.userData).toBeNull()
+
+    // Mobile menu command toggles sidebar
+    const menu = wrapper.vm.mobileMenuItems
+    expect(menu.length).toBeGreaterThan(0)
+    const firstCourse = menu[0].items?.[0]
+    if (firstCourse?.command) {
+      sidebarInjected.value = true
+      firstCourse.command()
+      expect(sidebarInjected.value).toBe(false)
+    }
 
     wrapper.unmount()
   })

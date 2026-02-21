@@ -1,15 +1,17 @@
 import io
+import logging
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
 
+from arq import create_pool
+from arq.connections import RedisSettings
 from google import genai
 from google.genai.types import UploadFileConfig
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from arq import create_pool
-from arq.connections import RedisSettings
 from app.core.config import settings
 from app.db.init_db import engine
 from app.models.models import Archive, Course
@@ -17,12 +19,11 @@ from app.utils.storage import get_minio_client
 
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 PROMPT_TEMPLATE_PATH = (
-    Path(__file__).resolve().parent
-    / "templates"
-    / "ai_exam_prompt.txt"
+    Path(__file__).resolve().parent / "templates" / "ai_exam_prompt.txt"
 )
 
 
@@ -35,7 +36,7 @@ async def generate_exam_content(
     archive_ids: List[int],
     user_id: int,
     prompt: Optional[str] = None,
-    temperature: float = 0.7
+    temperature: float = 0.7,
 ) -> dict:
     """
     Core AI exam generation logic
@@ -56,16 +57,14 @@ async def generate_exam_content(
     async with AsyncSession(engine) as db:
         # Get user's API key
         from app.models.models import User
-        user_query = select(User).where(User.id == user_id)
+
+        user_query = select(User).where(User.id == user_id, User.deleted_at.is_(None))
         user_result = await db.execute(user_query)
         user = user_result.scalar_one_or_none()
 
         if not user or not user.gemini_api_key:
             raise ValueError(
-                (
-                    "User API key not found. Please configure your "
-                    "Gemini API key first."
-                )
+                ("User API key not found. Please configure your Gemini API key first.")
             )
 
         api_key = user.gemini_api_key
@@ -100,7 +99,7 @@ async def generate_exam_content(
             for idx, (archive, course) in enumerate(archives_with_courses, 1):
                 response = minio_client.get_object(
                     bucket_name=settings.MINIO_BUCKET_NAME,
-                    object_name=archive.object_name
+                    object_name=archive.object_name,
                 )
                 pdf_data = response.read()
                 response.close()
@@ -112,14 +111,16 @@ async def generate_exam_content(
                 )
                 uploaded_files.append(uploaded_file)
 
-                archives_info.append({
-                    "id": archive.id,
-                    "name": archive.name,
-                    "course": course.name,
-                    "professor": archive.professor,
-                    "academic_year": archive.academic_year,
-                    "archive_type": archive.archive_type,
-                })
+                archives_info.append(
+                    {
+                        "id": archive.id,
+                        "name": archive.name,
+                        "course": course.name,
+                        "professor": archive.professor,
+                        "academic_year": archive.academic_year,
+                        "archive_type": archive.archive_type,
+                    }
+                )
 
             course_name = archives_info[0]["course"]
             professor = archives_info[0]["professor"]
@@ -146,9 +147,9 @@ async def generate_exam_content(
             #     temperature,
             # )
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model="gemini-2.5-flash",
                 contents=content,
-                config={'temperature': temperature}
+                config={"temperature": temperature},
             )
 
             # logger.info(f"[AI Exam] Generation completed successfully")
@@ -166,9 +167,7 @@ Answers may contain errors. Please verify the correctness yourself.
 
 """
 
-            generated_content = (
-                disclaimer.format(separator="=" * 80) + response.text
-            )
+            generated_content = disclaimer.format(separator="=" * 80) + response.text
 
             return {
                 "success": True,
@@ -199,18 +198,50 @@ async def generate_ai_exam_task(ctx, task_data: dict):
     #     task_data.get("user_id"),
     # )
 
+    redis = None
+    task_id = None
+    if ctx is None:
+        redis = None
+        task_id = None
+    else:
+        if not isinstance(ctx, dict):
+            raise TypeError("ARQ ctx must be a dict")
+        if "redis" not in ctx or "job_id" not in ctx:
+            raise KeyError("ARQ ctx missing required keys: redis/job_id")
+        redis = ctx.get("redis")
+        task_id = ctx.get("job_id")
+        if isinstance(task_id, bytes):
+            task_id = task_id.decode("utf-8", errors="ignore")
+
+    async def publish_event(status: str, *, error: str | None = None):
+        if not redis or not task_id:
+            return
+        try:
+            fields = {"status": status, "ts": datetime.utcnow().isoformat()}
+            if error:
+                fields["error"] = error
+            stream_key = f"ai_exam:task_events:{task_id}"
+            await redis.xadd(stream_key, fields)
+            await redis.expire(stream_key, 86400)
+        except Exception:
+            # Event streaming is best-effort; do not fail the job if Redis Streams is unavailable.
+            logger.exception("Failed to publish ai_exam event (task_id=%s)", task_id)
+
     try:
+        await publish_event("in_progress")
         result = await generate_exam_content(
-            archive_ids=task_data['archive_ids'],
-            user_id=task_data['user_id'],
-            prompt=task_data.get('prompt'),
-            temperature=task_data.get('temperature', 0.7)
+            archive_ids=task_data["archive_ids"],
+            user_id=task_data["user_id"],
+            prompt=task_data.get("prompt"),
+            temperature=task_data.get("temperature", 0.7),
         )
 
         # logger.info(f"[Worker] Task completed successfully")
+        await publish_event("complete")
         return result
 
-    except Exception:
+    except Exception as e:
+        await publish_event("failed", error=str(e))
         # logger.error(f"[Worker] Task failed: {str(e)}")
         raise
 

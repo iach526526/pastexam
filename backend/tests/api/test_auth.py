@@ -65,7 +65,7 @@ async def test_oauth_login_and_callback_creates_user(
         return {
             "provider": "NCHU",
             "sub": "oauth-subject",
-            "email": "oauthuser@example.com",
+            "email": "oauthuser@smail.nchu.edu.tw",
             "name": "OAuth User",
         }
 
@@ -86,14 +86,14 @@ async def test_oauth_login_and_callback_creates_user(
 
     async with session_maker() as session:
         result = await session.execute(
-            select(User).where(User.email == "oauthuser@example.com")
+            select(User).where(User.email == "oauthuser@smail.nchu.edu.tw")
         )
         created_user = result.scalar_one_or_none()
         assert created_user is not None
         assert created_user.oauth_provider == "NCHU"
         assert created_user.oauth_sub == "oauth-subject"
         await session.execute(
-            delete(User).where(User.email == "oauthuser@example.com")
+            delete(User).where(User.email == "oauthuser@smail.nchu.edu.tw")
         )
         await session.commit()
 
@@ -158,7 +158,7 @@ async def test_oauth_callback_updates_existing_user(
             follow_redirects=False,
         )
 
-    unique_email = f"{uuid.uuid4().hex}@example.com"
+    unique_email = f"{uuid.uuid4().hex}@smail.nchu.edu.tw"
     info = {
         "provider": "NCHU",
         "sub": "existing-sub",
@@ -293,7 +293,7 @@ async def test_auth_callback_direct_creates_user(monkeypatch, session_maker):
             return_value={
                 "provider": "NCHU",
                 "sub": "direct-sub",
-                "email": "direct@example.com",
+                "email": "direct@smail.nchu.edu.tw",
                 "name": "Direct User",
             }
         ),
@@ -315,7 +315,7 @@ async def test_auth_callback_direct_creates_user(monkeypatch, session_maker):
 
     async with session_maker() as session:
         created = await session.execute(
-            select(User).where(User.email == "direct@example.com")
+            select(User).where(User.email == "direct@smail.nchu.edu.tw")
         )
         user = created.scalar_one_or_none()
         assert user is not None
@@ -327,7 +327,7 @@ async def test_auth_callback_direct_creates_user(monkeypatch, session_maker):
 async def test_logout_direct_without_header(monkeypatch, session_maker):
     user = User(
         name="logout-direct",
-        email="logout-direct@example.com",
+        email="logout-direct@smail.nchu.edu.tw",
         is_admin=False,
         is_local=True,
     )

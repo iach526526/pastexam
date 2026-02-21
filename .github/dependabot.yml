@@ -1,0 +1,101 @@
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Asia/Taipei"
+    commit-message:
+      prefix: "chore"
+    groups:
+      github-actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "uv"
+    directory: "/backend"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore"
+    groups:
+      uv-backend-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore"
+    groups:
+      npm-root-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore"
+    groups:
+      npm-frontend-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Asia/Taipei"
+    commit-message:
+      prefix: "chore"
+    groups:
+      docker-backend-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Asia/Taipei"
+    commit-message:
+      prefix: "chore"
+    groups:
+      docker-frontend-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"

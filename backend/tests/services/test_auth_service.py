@@ -23,7 +23,8 @@ class FakeAsyncClient:
         self.token_payload = token_payload or {"access_token": "token-123"}
         self.profile_payload = profile_payload or {
             "username": "student",
-            "email": "student@example.com",
+            "sub": "123495279527",
+            "email": "student@smail.nchu.edu.tw",
         }
         self.token_exc = token_exc
         self.profile_exc = profile_exc
@@ -57,16 +58,16 @@ class FakeAsyncClient:
 @pytest.mark.asyncio
 async def test_oauth_callback_valid(monkeypatch):
     fake_client = FakeAsyncClient()
-    monkeypatch.setattr(httpx, "AsyncClient", lambda: fake_client)
+    monkeypatch.setattr(httpx, "AsyncClient", lambda *_, **__: fake_client)
 
     result = await oauth_callback(
         code="abc",
         state="same",
         stored_state="same",
     )
-    assert result["provider"] == "NCHU"
-    assert result["sub"] == "student"
-    assert result["email"] == "student@example.com"
+    assert result["provider"] == "google"
+    assert result["sub"] == "123495279527"
+    assert result["email"] == "student@smail.nchu.edu.tw"
 
 
 @pytest.mark.asyncio
@@ -82,7 +83,7 @@ async def test_oauth_callback_token_request_error(monkeypatch):
     fake_client = FakeAsyncClient(
         token_exc=httpx.RequestError("boom", request=fake_request)
     )
-    monkeypatch.setattr(httpx, "AsyncClient", lambda: fake_client)
+    monkeypatch.setattr(httpx, "AsyncClient", lambda *_, **__: fake_client)
 
     with pytest.raises(HTTPException) as exc:
         await oauth_callback(code="abc", state="s", stored_state="s")
@@ -92,7 +93,7 @@ async def test_oauth_callback_token_request_error(monkeypatch):
 @pytest.mark.asyncio
 async def test_oauth_callback_token_failure_status(monkeypatch):
     fake_client = FakeAsyncClient(token_status=400)
-    monkeypatch.setattr(httpx, "AsyncClient", lambda: fake_client)
+    monkeypatch.setattr(httpx, "AsyncClient", lambda *_, **__: fake_client)
 
     with pytest.raises(HTTPException) as exc:
         await oauth_callback(code="abc", state="s", stored_state="s")
@@ -105,7 +106,7 @@ async def test_oauth_callback_profile_request_error(monkeypatch):
     fake_client = FakeAsyncClient(
         profile_exc=httpx.RequestError("oops", request=fake_request)
     )
-    monkeypatch.setattr(httpx, "AsyncClient", lambda: fake_client)
+    monkeypatch.setattr(httpx, "AsyncClient", lambda *_, **__: fake_client)
 
     with pytest.raises(HTTPException) as exc:
         await oauth_callback(code="abc", state="s", stored_state="s")
@@ -115,7 +116,7 @@ async def test_oauth_callback_profile_request_error(monkeypatch):
 @pytest.mark.asyncio
 async def test_oauth_callback_profile_failure_status(monkeypatch):
     fake_client = FakeAsyncClient(profile_status=500)
-    monkeypatch.setattr(httpx, "AsyncClient", lambda: fake_client)
+    monkeypatch.setattr(httpx, "AsyncClient", lambda *_, **__: fake_client)
 
     with pytest.raises(HTTPException) as exc:
         await oauth_callback(code="abc", state="s", stored_state="s")

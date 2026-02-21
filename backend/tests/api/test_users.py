@@ -22,7 +22,7 @@ async def test_admin_can_create_and_delete_user(client):
     unique_suffix = uuid.uuid4().hex[:8]
     payload = {
         "name": f"test-user-{unique_suffix}",
-        "email": f"test-{unique_suffix}@example.com",
+        "email": f"test-{unique_suffix}@smail.nchu.edu.tw",
         "password": "StrongPass123",
         "is_admin": False,
     }
@@ -38,9 +38,7 @@ async def test_admin_can_create_and_delete_user(client):
         assert created["email"] == payload["email"]
         assert created["name"] == payload["name"]
 
-        delete_response = await client.delete(
-            f"{ADMIN_PATH}/{created['id']}"
-        )
+        delete_response = await client.delete(f"{ADMIN_PATH}/{created['id']}")
         assert delete_response.status_code == 200
         assert delete_response.json()["detail"] == "User deleted successfully"
     finally:
@@ -60,7 +58,7 @@ async def test_non_admin_cannot_access_admin_user_routes(client):
 
         payload = {
             "name": "no-admin",
-            "email": "no-admin@example.com",
+            "email": "no-admin@smail.nchu.edu.tw",
             "password": "password123",
             "is_admin": False,
         }
@@ -93,7 +91,7 @@ async def test_admin_can_update_user(client, session_maker):
     async with session_maker() as session:
         user = User(
             name=f"update-target-{unique}",
-            email=f"update-{unique}@example.com",
+            email=f"update-{unique}@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -131,13 +129,13 @@ async def test_update_user_prevents_duplicate_email(client, session_maker):
     async with session_maker() as session:
         existing = User(
             name=f"existing-user-{unique}",
-            email=f"existing-{unique}@example.com",
+            email=f"existing-{unique}@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
         target = User(
             name=f"target-user-{other}",
-            email=f"target-{other}@example.com",
+            email=f"target-{other}@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -154,7 +152,7 @@ async def test_update_user_prevents_duplicate_email(client, session_maker):
     try:
         response = await client.put(
             f"{ADMIN_PATH}/{target_id}",
-            json={"email": f"existing-{unique}@example.com"},
+            json={"email": f"existing-{unique}@smail.nchu.edu.tw"},
         )
         assert response.status_code == 400
         assert "already exists" in response.json()["detail"]
@@ -165,8 +163,8 @@ async def test_update_user_prevents_duplicate_email(client, session_maker):
                 delete(User).where(
                     User.email.in_(
                         [
-                            f"existing-{unique}@example.com",
-                            f"target-{other}@example.com",
+                            f"existing-{unique}@smail.nchu.edu.tw",
+                            f"target-{other}@smail.nchu.edu.tw",
                         ]
                     )
                 )
@@ -219,7 +217,7 @@ async def test_get_users_direct_returns_users(session_maker):
     async with session_maker() as session:
         user = User(
             name="direct-list",
-            email="direct-list@example.com",
+            email="direct-list@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -241,7 +239,7 @@ async def test_create_user_direct_duplicate_email(session_maker):
     async with session_maker() as session:
         existing = User(
             name="dup-email-existing",
-            email="dup-email@example.com",
+            email="dup-email@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -252,7 +250,7 @@ async def test_create_user_direct_duplicate_email(session_maker):
             await create_user(
                 user_data=UserCreate(
                     name="dup-email-new",
-                    email="dup-email@example.com",
+                    email="dup-email@smail.nchu.edu.tw",
                     password="irrelevant",
                     is_admin=False,
                 ),
@@ -270,7 +268,7 @@ async def test_create_user_direct_duplicate_name(session_maker):
     async with session_maker() as session:
         existing = User(
             name="dup-name",
-            email="dup-name-existing@example.com",
+            email="dup-name-existing@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -281,7 +279,7 @@ async def test_create_user_direct_duplicate_name(session_maker):
             await create_user(
                 user_data=UserCreate(
                     name="dup-name",
-                    email="dup-name-new@example.com",
+                    email="dup-name-new@smail.nchu.edu.tw",
                     password="irrelevant",
                     is_admin=False,
                 ),
@@ -304,7 +302,7 @@ async def test_create_user_direct_success(monkeypatch, session_maker):
         created = await create_user(
             user_data=UserCreate(
                 name="direct-create",
-                email="direct-create@example.com",
+                email="direct-create@smail.nchu.edu.tw",
                 password="SecretPass1!",
                 is_admin=True,
             ),
@@ -336,13 +334,13 @@ async def test_update_user_direct_duplicate_name(session_maker):
     async with session_maker() as session:
         existing = User(
             name="existing-name",
-            email="existing-name@example.com",
+            email="existing-name@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
         target = User(
             name="target-name",
-            email="target-name@example.com",
+            email="target-name@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -369,13 +367,13 @@ async def test_update_user_direct_duplicate_email(session_maker):
     async with session_maker() as session:
         existing = User(
             name="existing-email",
-            email="existing-email@example.com",
+            email="existing-email@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
         target = User(
             name="target-email",
-            email="target-email@example.com",
+            email="target-email@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -386,7 +384,7 @@ async def test_update_user_direct_duplicate_email(session_maker):
         with pytest.raises(HTTPException) as exc:
             await update_user(
                 user_id=target.id,
-                user_data=UserUpdate(email="existing-email@example.com"),
+                user_data=UserUpdate(email="existing-email@smail.nchu.edu.tw"),
                 current_user=UserRoles(user_id=1, is_admin=True),
                 db=session,
             )
@@ -402,7 +400,7 @@ async def test_update_user_direct_updates_fields(monkeypatch, session_maker):
     async with session_maker() as session:
         user = User(
             name="update-direct",
-            email="update-direct@example.com",
+            email="update-direct@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -419,7 +417,7 @@ async def test_update_user_direct_updates_fields(monkeypatch, session_maker):
             user_id=user.id,
             user_data=UserUpdate(
                 name="update-direct-new",
-                email="update-direct-new@example.com",
+                email="update-direct-new@smail.nchu.edu.tw",
                 password="NewPass!",
                 is_admin=True,
             ),
@@ -427,7 +425,7 @@ async def test_update_user_direct_updates_fields(monkeypatch, session_maker):
             db=session,
         )
         assert updated.name == "update-direct-new"
-        assert updated.email == "update-direct-new@example.com"
+        assert updated.email == "update-direct-new@smail.nchu.edu.tw"
         assert updated.password_hash == "hashed-NewPass!"
         assert updated.is_admin is True
 
@@ -440,7 +438,7 @@ async def test_update_user_direct_requires_admin(session_maker):
     async with session_maker() as session:
         user = User(
             name="update-requires-admin",
-            email="update-requires-admin@example.com",
+            email="update-requires-admin@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -500,9 +498,10 @@ async def test_delete_user_direct_not_found(session_maker):
 @pytest.mark.asyncio
 async def test_delete_user_direct_success(session_maker):
     async with session_maker() as session:
+        unique = uuid.uuid4().hex[:8]
         user = User(
-            name="delete-direct",
-            email="delete-direct@example.com",
+            name=f"delete-direct-{unique}",
+            email=f"delete-direct-{unique}@smail.nchu.edu.tw",
             is_admin=False,
             is_local=True,
         )
@@ -518,4 +517,5 @@ async def test_delete_user_direct_success(session_maker):
         assert response["detail"] == "User deleted successfully"
 
         remaining = await session.get(User, user.id)
-        assert remaining is None
+        assert remaining is not None
+        assert remaining.deleted_at is not None

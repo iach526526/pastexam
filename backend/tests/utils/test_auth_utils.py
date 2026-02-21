@@ -47,7 +47,7 @@ async def test_authenticate_user_validates_credentials(session_maker):
     async with session_maker() as session:
         user = User(
             name=f"auth-user-{suffix}",
-            email=f"auth-user-{suffix}@example.com",
+            email=f"auth-user-{suffix}@smail.nchu.edu.tw",
             password_hash=hashed,
             is_local=True,
         )
@@ -82,7 +82,7 @@ async def test_get_current_user_success(monkeypatch, session_maker):
     async with session_maker() as session:
         user = User(
             name=f"token-user-{suffix}",
-            email=f"token-user-{suffix}@example.com",
+            email=f"token-user-{suffix}@smail.nchu.edu.tw",
             password_hash=None,
             is_local=False,
             is_admin=True,

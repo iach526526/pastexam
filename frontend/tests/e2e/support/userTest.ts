@@ -7,15 +7,15 @@ const userTest = base.extend({
 
     const token = buildJwt({
       uid: 2,
-      email: 'user@example.com',
+      email: 'user@smail.nchu.edu.tw',
       name: '一般使用者',
       is_admin: false,
       exp: Math.floor(Date.now() / 1000) + 3600,
     })
 
     await context.addInitScript((value: string) => {
-      window.sessionStorage.setItem('authToken', value)
-      window.localStorage.setItem('authToken', value)
+      window.sessionStorage.setItem('auth-token', value)
+      window.localStorage.setItem('auth-token', value)
     }, token)
 
     await use(context)

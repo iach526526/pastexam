@@ -12,7 +12,7 @@
           @click="$emit('toggle-sidebar')"
         />
         <span
-          class="font-bold text-lg md:text-xl pl-2 title-text clickable-title flex align-items-center"
+          class="font-bold text-lg md:text-xl title-text clickable-title flex align-items-center"
           @click="handleTitleClick"
         >
           <img
@@ -184,13 +184,19 @@
     <Dialog
       :visible="issueReportVisible"
       @update:visible="handleIssueReportDialogClose"
-      header="問題回報"
       :modal="true"
       :draggable="false"
       :closeOnEscape="true"
       :style="{ width: '700px', maxWidth: '90vw' }"
       class="issue-report-dialog"
+      :pt="{ root: { 'aria-label': '問題回報', 'aria-labelledby': null } }"
     >
+      <template #header>
+        <div class="flex align-items-center gap-2.5">
+          <i class="pi pi-comments text-2xl" />
+          <div class="text-xl leading-tight font-semibold">問題回報</div>
+        </div>
+      </template>
       <div class="p-fluid w-full">
         <div class="field">
           <label for="issue-type" class="font-semibold">問題類型</label>
@@ -287,6 +293,14 @@ import { isUnauthorizedError } from '../utils/http'
 import { useNotifications } from '../utils/useNotifications'
 import NotificationModal from './NotificationModal.vue'
 import NotificationCenterModal from './NotificationCenterModal.vue'
+import {
+  STORAGE_KEYS,
+  removeLocalItem,
+  removeSessionItem,
+  getLocalJson,
+  getLocalItem,
+  getSessionJson,
+} from '../utils/storage'
 
 export default {
   name: 'AppNavbar',
@@ -544,10 +558,10 @@ export default {
         trackEvent(EVENTS.LOGOUT, { success: false })
       }
 
-      sessionStorage.removeItem('authToken')
-      localStorage.removeItem('selectedSubject')
-      localStorage.removeItem('adminCurrentTab')
-      localStorage.removeItem('aiExamCurrentTask')
+      removeSessionItem(STORAGE_KEYS.session.AUTH_TOKEN)
+      removeLocalItem(STORAGE_KEYS.local.SELECTED_SUBJECT)
+      removeLocalItem(STORAGE_KEYS.local.ADMIN_CURRENT_TAB)
+      removeLocalItem(STORAGE_KEYS.local.AI_EXAM_CURRENT_TASK)
       this.isAuthenticated = false
       this.userData = null
 
@@ -652,8 +666,42 @@ export default {
         platform: nav.platform,
         language: nav.language,
         url: window.location.href,
+        route: {
+          path: this.$route?.path || null,
+          name: this.$route?.name || null,
+          fullPath: this.$route?.fullPath || null,
+        },
+        pageContext: this.getIssuePageContext?.() ?? null,
         timestamp: new Date().toISOString(),
       }
+    },
+
+    getIssuePageContext() {
+      const context = {
+        selectedSubject: null,
+        adminCurrentTab: null,
+        archiveContext: null,
+      }
+
+      try {
+        context.selectedSubject = getLocalJson(STORAGE_KEYS.local.SELECTED_SUBJECT)
+      } catch {
+        context.selectedSubject = null
+      }
+
+      try {
+        context.adminCurrentTab = getLocalItem(STORAGE_KEYS.local.ADMIN_CURRENT_TAB)
+      } catch {
+        context.adminCurrentTab = null
+      }
+
+      try {
+        context.archiveContext = getSessionJson(STORAGE_KEYS.session.ISSUE_CONTEXT)
+      } catch {
+        context.archiveContext = null
+      }
+
+      return context
     },
 
     getBrowserInfo(userAgent) {
@@ -732,13 +780,42 @@ export default {
       const osInfo = this.getOSInfo(systemInfo.platform, systemInfo.userAgent)
       const formattedTime = this.formatTimestamp(systemInfo.timestamp)
 
+      const ctx = systemInfo.pageContext || {}
+      const archiveCtx = ctx.archiveContext || {}
+      const course = archiveCtx.course || {}
+      const preview = archiveCtx.preview || {}
+      const filters = archiveCtx.filters || {}
+
+      body += '## 頁面資訊\n\n'
+      body += `| 項目 | 資訊 |\n`
+      body += `|------|------|\n`
+      body += `| 目前頁面 | ${systemInfo.route?.fullPath || systemInfo.url} |\n`
+      if (course?.name || ctx.selectedSubject?.label) {
+        body += `| 課程 | ${(course?.name || ctx.selectedSubject?.label || '').trim()} |\n`
+      }
+      if (course?.id || ctx.selectedSubject?.id) {
+        body += `| 課程 ID | ${course?.id ?? ctx.selectedSubject?.id} |\n`
+      }
+      if (filters?.year || filters?.professor || filters?.type || filters?.hasAnswers) {
+        body += `| 篩選 | year=${filters?.year || '-'}, professor=${filters?.professor || '-'}, type=${filters?.type || '-'}, hasAnswers=${filters?.hasAnswers ? 'Y' : 'N'} |\n`
+      }
+      if (filters?.searchQuery) {
+        body += `| 搜尋 | ${filters.searchQuery} |\n`
+      }
+      if (preview?.open) {
+        body += `| 預覽 | open=true, archiveId=${preview.archiveId || '-'}, name=${preview.name || '-'} |\n`
+      }
+      if (systemInfo.route?.path === '/admin' && ctx.adminCurrentTab !== null) {
+        body += `| 管理頁籤 | ${ctx.adminCurrentTab} |\n`
+      }
+      body += '\n'
+
       body += '## 環境資訊\n\n'
       body += `| 項目 | 資訊 |\n`
       body += `|------|------|\n`
       body += `| 瀏覽器 | ${browserInfo} |\n`
       body += `| 作業系統 | ${osInfo} |\n`
       body += `| 語言設定 | ${systemInfo.language} |\n`
-      body += `| 頁面位置 | ${systemInfo.url} |\n`
       body += `| 回報時間 | ${formattedTime} |\n\n`
 
       body += '<details>\n<summary>詳細系統資訊</summary>\n\n'
@@ -746,6 +823,8 @@ export default {
       body += `User Agent: ${systemInfo.userAgent}\n`
       body += `Platform: ${systemInfo.platform}\n`
       body += `Timestamp: ${systemInfo.timestamp}\n`
+      body += `Route: ${JSON.stringify(systemInfo.route || {})}\n`
+      body += `Page Context: ${JSON.stringify(systemInfo.pageContext || {})}\n`
       body += '```\n'
       body += '</details>\n\n'
 
@@ -836,7 +915,10 @@ export default {
 
 .clickable-title {
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transform: scale(1);
+  transform-origin: center center;
+  will-change: transform;
+  transition: transform 300ms ease-in-out !important;
 }
 
 .clickable-title:hover {
@@ -885,7 +967,6 @@ export default {
 }
 
 :deep(.p-menubar .p-menubar-root-list > .p-menuitem > .p-menuitem-content) {
-  transition: background-color 0.2s ease;
   background: transparent !important;
 }
 

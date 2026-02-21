@@ -8,8 +8,8 @@ const sampleCourses = [
 ]
 
 const sampleUsers = [
-  { id: 1, name: 'Alice', email: 'alice@example.com', is_admin: true, is_local: true },
-  { id: 2, name: 'Bob', email: 'bob@example.com', is_admin: false, is_local: false },
+  { id: 1, name: 'Alice', email: 'alice@smail.nchu.edu.tw', is_admin: true, is_local: true },
+  { id: 2, name: 'Bob', email: 'bob@smail.nchu.edu.tw', is_admin: false, is_local: false },
 ]
 
 const now = new Date()
@@ -186,13 +186,13 @@ describe('AdminView', () => {
 
     wrapper.vm.openCreateUserDialog()
     wrapper.vm.userForm.name = 'Charlie'
-    wrapper.vm.userForm.email = 'charlie@example.com'
+    wrapper.vm.userForm.email = 'charlie@smail.nchu.edu.tw'
     wrapper.vm.userForm.password = 'secret'
     wrapper.vm.userForm.is_admin = true
     await wrapper.vm.saveUser()
     expect(createUserMock).toHaveBeenCalledWith({
       name: 'Charlie',
-      email: 'charlie@example.com',
+      email: 'charlie@smail.nchu.edu.tw',
       password: 'secret',
       is_admin: true,
     })
@@ -333,7 +333,7 @@ describe('AdminView', () => {
     wrapper.vm.notifications = []
     await wrapper.vm.handleTabChange('2')
 
-    expect(localStorage.getItem('adminCurrentTab')).toBe('2')
+    expect(localStorage.getItem('admin-current-tab')).toBe('2')
     expect(trackEventMock).toHaveBeenCalledWith(
       'switch-tab',
       expect.objectContaining({ tab: 'notifications' })
@@ -368,7 +368,7 @@ describe('AdminView', () => {
 
     wrapper.vm.openCreateUserDialog()
     wrapper.vm.userForm.name = 'Dave'
-    wrapper.vm.userForm.email = 'dave@example.com'
+    wrapper.vm.userForm.email = 'dave@smail.nchu.edu.tw'
     wrapper.vm.userForm.password = 'secret'
     createUserMock.mockRejectedValueOnce(new Error('user-fail'))
     isUnauthorizedErrorMock.mockReturnValueOnce(false)
@@ -406,7 +406,7 @@ describe('AdminView', () => {
     trackEventMock.mockClear()
     localStorage.clear()
     await wrapper.vm.handleTabChange('1')
-    expect(localStorage.getItem('adminCurrentTab')).toBe('1')
+    expect(localStorage.getItem('admin-current-tab')).toBe('1')
     expect(trackEventMock).toHaveBeenCalledWith('switch-tab', { tab: 'users' })
 
     wrapper.unmount()

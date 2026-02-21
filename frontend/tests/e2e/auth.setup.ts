@@ -1,4 +1,5 @@
 import { test as setup, expect } from '@playwright/test'
+import { clickWhenVisible } from './support/ui'
 
 type PastexamHelpers = {
   openLoginModal?: () => void
@@ -47,15 +48,15 @@ setup('authenticate as admin', async ({ page }) => {
   await passwordInput.fill(ADMIN_PASSWORD)
 
   const submitButton = page.getByRole('button', { name: '登入' })
-  await submitButton.click()
+  await clickWhenVisible(submitButton)
 
   await page.waitForURL('**/archive', { timeout: 15000 })
   await expect(page).toHaveURL(/\/archive$/)
 
-  const token = await page.evaluate(() => window.sessionStorage.getItem('authToken'))
+  const token = await page.evaluate(() => window.sessionStorage.getItem('auth-token'))
   if (token) {
     await page.evaluate((value) => {
-      window.localStorage.setItem('authToken', value)
+      window.localStorage.setItem('auth-token', value)
     }, token)
   } else {
     throw new Error('Expected auth token after login but none was found')
