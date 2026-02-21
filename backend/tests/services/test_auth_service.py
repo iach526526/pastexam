@@ -64,7 +64,7 @@ async def test_oauth_callback_valid(monkeypatch):
         state="same",
         stored_state="same",
     )
-    assert result["provider"] == "NCHU"
+    assert result["provider"] == "google"
     assert result["sub"] == "student"
     assert result["email"] == "student@smail.nchu.edu.tw"
 
