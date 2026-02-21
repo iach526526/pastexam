@@ -234,7 +234,7 @@ async def test_upload_archive_rejects_large_file(
             },
         )
         assert response.status_code == 400
-        assert response.json()["detail"] == "File size exceeds 10MB limit"
+        assert response.json()["detail"] == "File size exceeds 20MB limit"
     finally:
         app.dependency_overrides.pop(get_current_user, None)
         async with session_maker() as session:

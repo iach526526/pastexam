@@ -65,7 +65,7 @@ async def test_oauth_login_and_callback_creates_user(
         return {
             "provider": "NCHU",
             "sub": "oauth-subject",
-            "email": "oauthuser@example.com",
+            "email": "oauthuser@smail.nchu.edu.tw",
             "name": "OAuth User",
         }
 
@@ -158,7 +158,7 @@ async def test_oauth_callback_updates_existing_user(
             follow_redirects=False,
         )
 
-    unique_email = f"{uuid.uuid4().hex}@example.com"
+    unique_email = f"{uuid.uuid4().hex}@smail.nchu.edu.tw"
     info = {
         "provider": "NCHU",
         "sub": "existing-sub",
@@ -293,7 +293,7 @@ async def test_auth_callback_direct_creates_user(monkeypatch, session_maker):
             return_value={
                 "provider": "NCHU",
                 "sub": "direct-sub",
-                "email": "direct@example.com",
+                "email": "direct@smail.nchu.edu.tw",
                 "name": "Direct User",
             }
         ),
