@@ -23,6 +23,7 @@ class FakeAsyncClient:
         self.token_payload = token_payload or {"access_token": "token-123"}
         self.profile_payload = profile_payload or {
             "username": "student",
+            "sub": "123495279527",
             "email": "student@smail.nchu.edu.tw",
         }
         self.token_exc = token_exc
@@ -65,7 +66,7 @@ async def test_oauth_callback_valid(monkeypatch):
         stored_state="same",
     )
     assert result["provider"] == "google"
-    assert result["sub"] == "student"
+    assert result["sub"] == "123495279527"
     assert result["email"] == "student@smail.nchu.edu.tw"
 
 
