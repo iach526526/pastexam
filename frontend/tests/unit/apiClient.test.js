@@ -139,9 +139,8 @@ describe('api client interceptors', () => {
     localStorage.setItem('auth-token', 'token-xyz')
     const dispatchSpy = vi.spyOn(window, 'dispatchEvent')
 
-    const { bindUnauthorizedWebSocket, WS_UNAUTHORIZED_CLOSE_CODE } = await import(
-      '@/api/services/client.js'
-    )
+    const { bindUnauthorizedWebSocket, WS_UNAUTHORIZED_CLOSE_CODE } =
+      await import('@/api/services/client.js')
 
     const closeHandlers = []
     const ws = {
