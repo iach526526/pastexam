@@ -90,7 +90,7 @@ async def test_oauth_login_and_callback_creates_user(
         )
         created_user = result.scalar_one_or_none()
         assert created_user is not None
-        assert created_user.oauth_provider == "NCHU"
+        assert created_user.oauth_provider == "google"
         assert created_user.oauth_sub == "oauth-subject"
         await session.execute(
             delete(User).where(User.email == "oauthuser@smail.nchu.edu.tw")
