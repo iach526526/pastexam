@@ -67,7 +67,7 @@ async def oauth_login(request: Request):
         "client_id": settings.OAUTH_CLIENT_ID,
         "response_type": "code",
         "state": csrf_token,
-        "scope": "profile",
+        "scope": "profile email",
         "redirect_uri": settings.OAUTH_REDIRECT_URI,
     }
     auth_url = f"{settings.OAUTH_AUTHORIZE_URL}?{urlencode(auth_params)}"
@@ -85,7 +85,7 @@ async def auth_callback_endpoint(
     info = await oauth_callback(code, state, stored_state)
     if not info.get("sub") or not info.get("email"):
         raise HTTPException(status_code=400, detail="Invalid OAuth response")
-    email = info["email"].lower()
+    email = info.get("email").lower()
     if not email.endswith("@smail.nchu.edu.tw"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

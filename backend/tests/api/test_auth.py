@@ -63,7 +63,7 @@ async def test_oauth_login_and_callback_creates_user(
         assert state_param == state
         assert stored_state == state
         return {
-            "provider": "NCHU",
+            "provider": "google",
             "sub": "oauth-subject",
             "email": "oauthuser@smail.nchu.edu.tw",
             "name": "OAuth User",
@@ -160,7 +160,7 @@ async def test_oauth_callback_updates_existing_user(
 
     unique_email = f"{uuid.uuid4().hex}@smail.nchu.edu.tw"
     info = {
-        "provider": "NCHU",
+        "provider": "google",
         "sub": "existing-sub",
         "email": unique_email,
         "name": "Existing User",
@@ -181,7 +181,7 @@ async def test_oauth_callback_updates_existing_user(
         user_id = user.id
 
     update_info = {
-        "provider": "NCHU",
+        "provider": "google",
         "sub": "existing-sub",
         "email": unique_email,
         "name": "Existing User",
@@ -291,7 +291,7 @@ async def test_auth_callback_direct_creates_user(monkeypatch, session_maker):
         "app.api.services.auth.oauth_callback",
         AsyncMock(
             return_value={
-                "provider": "NCHU",
+                "provider": "google",
                 "sub": "direct-sub",
                 "email": "direct@smail.nchu.edu.tw",
                 "name": "Direct User",
