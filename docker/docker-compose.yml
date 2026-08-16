@@ -2,7 +2,15 @@ name: pastexam
 
 services:
   frontend:
-    image: ghcr.io/nctucsunion/pastexam:frontend
+    image: pastexam-frontend-local
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: https://passexam.iach.cc/api
+        VITE_SITE_HOSTNAME: https://passexam.iach.cc
+        VITE_UMAMI_SCRIPT_URL: ""
+        VITE_UMAMI_WEBSITE_ID: ""
     container_name: pastexam-frontend
     restart: always
     # ports:
@@ -11,7 +19,10 @@ services:
       - app_network
 
   backend:
-    image: ghcr.io/nctucsunion/pastexam:backend
+    image: pastexam-backend-local
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     container_name: pastexam-backend
     restart: always
     depends_on:
@@ -29,7 +40,7 @@ services:
       - app_network
 
   worker:
-    image: ghcr.io/nctucsunion/pastexam:backend
+    image: pastexam-backend-local
     container_name: pastexam-worker
     restart: always
     command: arq app.worker.WorkerSettings
